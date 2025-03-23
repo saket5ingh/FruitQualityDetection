@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLOv11 Object Detection</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a6cfa;
+            --secondary-color: #f0f4ff;
+            --text-color: #333;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: #f9fafc;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .upload-section {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+        }
+        
+        .upload-container {
+            border: 2px dashed #ccc;
+            border-radius: var(--border-radius);
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .upload-container:hover {
+            border-color: var(--primary-color);
+            background-color: var(--secondary-color);
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .file-input {
+            position: absolute;
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .file-label {
+            display: block;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .selected-file {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: var(--secondary-color);
+            border-radius: var(--border-radius);
+            display: none;
+        }
+        
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background-color: #3a5bd9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-container {
+            text-align: center;
+        }
+        
+        .results-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .result-card {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+        }
+        
+        .card-body {
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .image-container {
+            max-width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .result-image {
+            max-width: 100%;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .results-section {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>YOLOv11 Fruit Quality Detection</h1>
+            <p class="subtitle">Advanced AI-powered fruit quality detection using the latest YOLOv11 model</p>
+        </header>
+        
+        <div class="upload-section">
+            <form id="detection-form" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Use label for proper accessibility and functionality -->
+                <label for="id_image" class="upload-container" id="upload-container">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <h3>Drag & Drop or Click to Upload</h3>
+                    <p>Support for JPG, PNG, BMP images (Max: 10MB)</p>
+                    
+                    <input type="file" name="{{ form.image.name }}" id="id_image" class="file-input" accept="image/*" required>
+                    
+                    <div class="selected-file" id="selected-file">
+                        <i class="fas fa-file-image"></i>
+                        <span id="file-name">No file selected</span>
+                    </div>
+                </label>
+                
+                <div class="btn-container">
+                    <button type="submit" class="btn">
+                        <i class="fas fa-search"></i> Detect Objects
+                    </button>
+                </div>
+            </form>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing your image... Please wait</p>
+            </div>
+        </div>
+        
+        {% if uploaded_image %}
+        <div class="results-section" id="results-section">
+            <div class="result-card">
+                <div class="card-header">
+                    <i class="fas fa-image"></i> Original Image
+                </div>
+                <div class="card-body">
+                    <div class="image-container">
+                        <img src="{{ uploaded_image }}" class="result-image" alt="Original image">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="result-card">
+                <div class="card-header">
+                    <i class="fas fa-object-group"></i> Detected Objects
+                </div>
+                <div class="card-body">
+                    <div class="image-container">
+                        <img src="{{ detected_image }}" class="result-image" alt="Image with detected objects">
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <footer class="footer">
+            <p>Powered by YOLOv11 Object Detection | &copy; 2025</p>
+        </footer>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadContainer = document.getElementById('upload-container');
+            const fileInput = document.getElementById('id_image');
+            const selectedFile = document.getElementById('selected-file');
+            const fileName = document.getElementById('file-name');
+            const detectionForm = document.getElementById('detection-form');
+            const loading = document.getElementById('loading');
+            
+            
+            // Handle file selection change
+            fileInput.addEventListener('change', function() {
+                updateFileName();
+            });
+            
+            // Handle drag and drop
+            uploadContainer.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadContainer.style.borderColor = '#4a6cfa';
+                uploadContainer.style.backgroundColor = '#f0f4ff';
+            });
+            
+            uploadContainer.addEventListener('dragleave', function() {
+                uploadContainer.style.borderColor = '#ccc';
+                uploadContainer.style.backgroundColor = 'white';
+            });
+            
+            uploadContainer.addEventListener('drop', function(e) {
+                e.preventDefault();
+                
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    updateFileName();
+                }
+                
+                uploadContainer.style.borderColor = '#ccc';
+                uploadContainer.style.backgroundColor = 'white';
+            });
+            
+            // Update selected file name
+            function updateFileName() {
+                if (fileInput.files.length > 0) {
+                    selectedFile.style.display = 'block';
+                    fileName.textContent = fileInput.files[0].name;
+                } else {
+                    selectedFile.style.display = 'none';
+                    fileName.textContent = 'No file selected';
+                }
+            }
+            
+            // Show loading indicator on form submission
+            detectionForm.addEventListener('submit', function() {
+                loading.style.display = 'block';
+            });
+            
+            // Initialize existing form if available
+            if (fileInput.files && fileInput.files.length > 0) {
+                updateFileName();
+            }
+            
+            // Check if results are available and scroll to them
+            const resultsSection = document.getElementById('results-section');
+            if (resultsSection) {
+                setTimeout(() => {
+                    resultsSection.scrollIntoView({ behavior: 'smooth' });
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>

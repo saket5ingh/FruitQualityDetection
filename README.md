@@ -1,16 +1,22 @@
-# YOLOv11 Object Detection Web App (Django)
+# YOLOv11 Fruit Quality Detection
 
-This is a Django-based web application that allows users to upload images and detect objects using a trained YOLOv11 model.
+This repository contains a complete Django web application for  fruit qualitydetection using YOLOv11 models. The application allows users to upload images, processes them with a pre-trained YOLOv11 model, and displays the detection results.
 
-## 🚀 Features
+## Features
 
-- Upload images through a web interface
-- Perform object detection using a YOLOv11 model (`best.pt`)
-- Display detected objects with bounding boxes
-- Show object names and confidence scores
-- Attractive frontend with Bootstrap
+- User-friendly web interface for image upload
+- Integration with YOLOv11 object detection model
+- Real-time image preview before submission
+- Display of original and processed images side-by-side
+- Responsive design using Bootstrap
 
----
+## Prerequisites
+
+- Python 3.8+
+- Django 4.0+
+- PyTorch 1.12+
+- OpenCV
+- A trained YOLOv11 model file (best.pt)
 
 ## 📂 Project Structure
 
@@ -76,12 +82,13 @@ Now, open `http://127.0.0.1:8000/` in your browser. 🎯
 
 ---
 
-## 📌 Usage
+## Usage
 
-1. **Upload an Image**: Select an image and click `Detect Objects`.
-2. **Detection Process**: The model processes the image and identifies objects.
-3. **Results Display**: The detected objects, bounding boxes, and confidence scores appear on the webpage.
-
+1. Access the web application at `http://127.0.0.1:8000`
+2. Upload an image using the provided form
+3. Click the "Detect Objects" button
+4. View the detection results on the next page
+5. Use the "Upload Another Image" button to process more images
 ---
 
 ## 🐞 Troubleshooting
@@ -98,16 +105,7 @@ Now, open `http://127.0.0.1:8000/` in your browser. 🎯
 - Try a different image.
 
 ---
-
-## 📜 License
-
-This project is open-source and available under the MIT License.
-
----
-
 ## 🤝 Contributing
 
 Pull requests and feature suggestions are welcome! 😃
-
-**Developed by [Your Name]** 🚀
 
